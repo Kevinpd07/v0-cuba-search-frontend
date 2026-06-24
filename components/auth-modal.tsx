@@ -8,6 +8,7 @@ type UserType = "actor" | "usuario"
 
 interface AuthData {
   isLoggedIn: boolean
+  name: string
   email: string
   userType: UserType
   preferences: {
@@ -33,6 +34,7 @@ export function AuthModal({
   onClose: () => void
 }) {
   const [tab, setTab] = useState<"login" | "register">("login")
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [userType, setUserType] = useState<UserType>("usuario")
@@ -43,6 +45,7 @@ export function AuthModal({
   useEffect(() => {
     if (!isOpen) {
       setTab("login")
+      setName("")
       setEmail("")
       setPassword("")
       setUserType("usuario")
@@ -54,6 +57,7 @@ export function AuthModal({
 
   useEffect(() => {
     if (isOpen) {
+      setName("")
       setEmail("")
       setPassword("")
       setUserType("usuario")
@@ -71,6 +75,7 @@ export function AuthModal({
     try {
       const endpoint = tab === "register" ? "/api/auth/register" : "/api/auth/login"
       const body: any = {
+        name,
         email,
         password,
         preferences: {
@@ -171,6 +176,29 @@ export function AuthModal({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {tab === "register" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-2"
+                >
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Nombre
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder="Tu nombre completo"
+                      className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
                   Correo electrónico

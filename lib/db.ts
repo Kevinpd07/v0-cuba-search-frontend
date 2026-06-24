@@ -8,6 +8,7 @@ const db = new Database(dbPath)
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     user_type TEXT NOT NULL CHECK(user_type IN ('actor', 'usuario')),
@@ -29,7 +30,7 @@ db.exec(`
 `)
 
 const insertUser = db.prepare(
-  "INSERT INTO users (email, password, user_type) VALUES (?, ?, ?)"
+  "INSERT INTO users (name, email, password, user_type) VALUES (?, ?, ?, ?)"
 )
 const insertPreference = db.prepare(
   "INSERT INTO preferences (user_id, language, notifications, dark_mode, results_per_page) VALUES (?, ?, ?, ?, ?)"
@@ -55,6 +56,7 @@ const upsertPreferences = db.prepare(
 )
 
 export function registerUser(
+  name: string,
   email: string,
   password: string,
   userType: "actor" | "usuario",
@@ -65,7 +67,7 @@ export function registerUser(
     resultsPerPage: number
   }
 ) {
-  const result = insertUser.run(email, password, userType)
+  const result = insertUser.run(name, email, password, userType)
   const userId = result.lastInsertRowid as number
   insertPreference.run(
     userId,
@@ -74,18 +76,24 @@ export function registerUser(
     preferences.darkMode ? 1 : 0,
     preferences.resultsPerPage
   )
-  return { id: userId, email, userType }
+  return {
+    id: result.lastInsertRowid as number,
+    name,
+    email,
+    userType,
+  }
 }
 
 export function loginUser(
   email: string,
   password: string
-): { id: number; email: string; userType: "actor" | "usuario"; preferences: any } | null {
+): { id: number; name: string; email: string; userType: "actor" | "usuario"; preferences: any } | null {
   const user = findUserByEmail.get(email) as any
   if (!user || user.password !== password) return null
   const prefs = findPreferencesByUserId.get(user.id) as any
   return {
     id: user.id,
+    name: user.name,
     email: user.email,
     userType: user.user_type as "actor" | "usuario",
     preferences: {
@@ -121,6 +129,7 @@ export function getUserWithPreferences(email: string) {
   const prefs = findPreferencesByUserId.get(user.id) as any
   return {
     id: user.id,
+    name: user.name,
     email: user.email,
     userType: user.user_type as "actor" | "usuario",
     preferences: {
@@ -138,6 +147,7 @@ export function getUserById(id: number) {
   const prefs = findPreferencesByUserId.get(user.id) as any
   return {
     id: user.id,
+    name: user.name,
     email: user.email,
     userType: user.user_type as "actor" | "usuario",
     preferences: {

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ user: null })
     }
 
-    return NextResponse.json({ user })
+    return NextResponse.json({ user: { ...user, isLoggedIn: true } })
   } catch (error) {
     return NextResponse.json({ user: null })
   }

@@ -3,9 +3,9 @@ import { registerUser } from "@/lib/db"
 
 export async function POST(request: Request) {
   try {
-    const { email, password, userType, preferences } = await request.json()
+    const { name, email, password, userType, preferences } = await request.json()
 
-    if (!email || !password || !userType) {
+    if (!name || !email || !password || !userType) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 })
     }
 
@@ -14,15 +14,15 @@ export async function POST(request: Request) {
     }
 
     try {
-      const user = registerUser(email, password, userType, {
+      const user = registerUser(name, email, password, userType, {
         language: preferences?.language ?? "es",
         notifications: preferences?.notifications ?? true,
         darkMode: preferences?.darkMode ?? false,
         resultsPerPage: preferences?.resultsPerPage ?? 10,
       })
 
-      return NextResponse.json(
-        { user },
+       return NextResponse.json(
+        { user: { ...user, isLoggedIn: true } },
         { status: 201, headers: { "Set-Cookie": `cubaentera_session=${Buffer.from(JSON.stringify({ userId: user.id })).toString("base64")}; Path=/; HttpOnly; SameSite=Strict` } }
       )
     } catch (e: any) {

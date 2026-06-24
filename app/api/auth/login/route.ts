@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { user },
+      { user: { ...user, isLoggedIn: true } },
       {
         status: 200,
         headers: {
