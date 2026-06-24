@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -8,6 +9,7 @@ import {
   Globe,
   FileText,
   Image as ImageIcon,
+  Newspaper,
 } from "lucide-react";
 
 interface SearchResultsProps {
@@ -857,6 +859,7 @@ export function SearchResults({
   setSearchQuery,
   onSearch,
 }: SearchResultsProps) {
+  const [activeTab, setActiveTab] = useState<"all" | "news" | "images">("all")
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       onSearch();
@@ -866,8 +869,21 @@ export function SearchResults({
   const filteredResults = mockResults.filter(
     (result) =>
       result.title.toLowerCase().includes(query.toLowerCase()) ||
-      result.description.toLowerCase().includes(query.toLowerCase()),
+      result.description.toLowerCase().includes(query.toLowerCase()) ||
+      result.url.toLowerCase().includes(query.toLowerCase()),
   );
+
+  const newsResults = filteredResults.filter((r) => r.type === "news")
+  const imageResults = [
+    { title: `${query} - imagen 1`, url: `https://picsum.photos/seed/${query}1/400/300`, source: "Granma", type: "news" },
+    { title: `${query} - imagen 2`, url: `https://picsum.photos/seed/${query}2/400/300`, source: "Cubadebate", type: "news" },
+    { title: `${query} - imagen 3`, url: `https://picsum.photos/seed/${query}3/400/300`, source: "ACN", type: "news" },
+    { title: `${query} - imagen 4`, url: `https://picsum.photos/seed/${query}4/400/300`, source: "Juventud Rebelde", type: "news" },
+  ].filter(img => 
+    query === "" || 
+    img.title.toLowerCase().includes(query.toLowerCase()) ||
+    img.source.toLowerCase().includes(query.toLowerCase())
+  )
 
   return (
     <motion.div
@@ -916,16 +932,42 @@ export function SearchResults({
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-6 mt-4 text-sm">
-            <button className="flex items-center gap-2 text-primary border-b-2 border-primary pb-2 font-medium">
+          <div className="flex gap-1 mt-4 text-sm">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`flex items-center gap-2 pb-2 px-3 rounded-t-lg font-medium transition-colors ${
+                activeTab === "all"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
               <Globe className="w-4 h-4" />
               Todos
             </button>
-            <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground pb-2 transition-colors">
+            <button
+              onClick={() => setActiveTab("news")}
+              className={`flex items-center gap-2 pb-2 px-3 rounded-t-lg font-medium transition-colors ${
+                activeTab === "news"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
               <FileText className="w-4 h-4" />
               Noticias
+              {newsResults.length > 0 && (
+                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                  {newsResults.length}
+                </span>
+              )}
             </button>
-            <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground pb-2 transition-colors">
+            <button
+              onClick={() => setActiveTab("images")}
+              className={`flex items-center gap-2 pb-2 px-3 rounded-t-lg font-medium transition-colors ${
+                activeTab === "images"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
               <ImageIcon className="w-4 h-4" />
               Imágenes
             </button>
@@ -934,48 +976,80 @@ export function SearchResults({
       </header>
 
       {/* Results */}
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      <main className="max-w-6xl mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">
-          Aproximadamente {filteredResults.length} resultados para &quot;{query}
-          &quot; en dominios .cu
+          {activeTab === "all"
+            ? `Aproximadamente ${filteredResults.length} resultados para "${query}" en dominios .cu`
+            : activeTab === "news"
+              ? `${filteredResults.length} noticias relacionadas con "${query}"`
+              : `${imageResults.length} imágenes relacionadas con "${query}"`}
         </p>
 
-        <div className="space-y-6">
-          {filteredResults.map((result, index) => (
-            <motion.article
-              key={result.url}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="group"
-            >
-              <a
-                href={result.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
+        {activeTab === "images" ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {imageResults.map((img, index) => (
+              <motion.div
+                key={img.url}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className="group cursor-pointer"
               >
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
-                    <Globe className="w-3 h-3" />
-                  </div>
-                  <span className="group-hover:text-primary transition-colors">
-                    {result.url}
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="aspect-square rounded-xl overflow-hidden bg-muted border border-border hover:border-primary/30 transition-all">
+                  <img
+                    src={img.url}
+                    alt={img.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-lg font-medium text-secondary group-hover:underline underline-offset-2 mb-1">
-                  {result.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {result.description}
+                <p className="text-xs text-muted-foreground mt-2 truncate group-hover:text-foreground transition-colors">
+                  {img.source}
                 </p>
-              </a>
-            </motion.article>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {(activeTab === "all" ? filteredResults : newsResults).map((result, index) => (
+              <motion.article
+                key={result.url}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group"
+              >
+                <a
+                  href={result.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
+                      {result.type === "news" ? (
+                        <FileText className="w-3 h-3" />
+                      ) : (
+                        <Globe className="w-3 h-3" />
+                      )}
+                    </div>
+                    <span className="group-hover:text-primary transition-colors">
+                      {result.url}
+                    </span>
+                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <h3 className="text-lg font-medium text-secondary group-hover:underline underline-offset-2 mb-1">
+                    {result.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {result.description}
+                  </p>
+                </a>
+              </motion.article>
+            ))}
+          </div>
+        )}
 
-        {filteredResults.length === 0 && (
+        {activeTab !== "images" && filteredResults.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -990,8 +1064,7 @@ export function SearchResults({
           </motion.div>
         )}
 
-        {/* Pagination mock */}
-        {filteredResults.length > 0 && (
+        {activeTab !== "images" && filteredResults.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
