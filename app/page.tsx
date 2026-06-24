@@ -29,7 +29,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-hidden pt-16">
       <FloatingElements />
       
       <AnimatePresence mode="wait">

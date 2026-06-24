@@ -879,7 +879,7 @@ export function SearchResults({
       className="min-h-screen"
     >
       {/* Header with search */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-16 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             {/* Back button */}
