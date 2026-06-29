@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   keywords: ["cuba", "buscador", "search", "cubano", ".cu", "internet cubano"],
   icons: {
     icon: [
-      { url: "/cubaentera1.jpeg", type: "image/jpeg" },
+      { url: "/favIcon.svg", type: "image/svg+xml" },
       {
         url: "/icon-light-32x32.png",
         media: "(prefers-color-scheme: light)",
